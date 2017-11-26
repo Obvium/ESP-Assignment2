@@ -1,0 +1,4 @@
+start
+morgen
+gestern
+ich gehe heute.
