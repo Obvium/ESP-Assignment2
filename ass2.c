@@ -19,16 +19,50 @@ char getInput();
 char *readLine(FILE *fin);
 Chapter *loadChapter(char *filename);
 char *readAll(FILE *fin);
+void adventure(Chapter *next);
+void freeChapters(Chapter *chapter);
 
-
-
-void adventure()
+int main()
 {
-  loadChapter("Start");
+  Chapter *chapter = loadChapter("Start.txt");
 
-  while(printChapter())
+  adventure(chapter);
+
+  freeChapters(chapter);
+
+  return 0;
+}
+
+void freeChapters(Chapter *chapter)
+{
+  if (chapter->choiceA_ != NULL)
   {
-    getInput();
+    freeChapters(chapter->choiceA_);
+  }
+
+  if (chapter->choiceB_ != NULL)
+  {
+    freeChapters(chapter->choiceB_);
+  }
+
+  free(chapter->title_);
+  free(chapter->text_);
+  free(chapter);
+}
+
+
+void adventure(Chapter *next)
+{
+  while (printChapter(next))
+  {
+    if (getInput() == 'A')
+    {
+      next = next->choiceA_;
+    }
+    else
+    {
+      next = next->choiceB_;
+    }
   }
 }
 
