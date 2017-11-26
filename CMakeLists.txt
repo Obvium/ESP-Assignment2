@@ -3,5 +3,5 @@ project(textadventure)
 
 set(CMAKE_C_STANDARD 11)
 
-set(SOURCE_FILES main.c ass2.c)
+set(SOURCE_FILES ass2.c)
 add_executable(textadventure ${SOURCE_FILES})
