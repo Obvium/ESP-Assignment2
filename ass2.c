@@ -24,7 +24,7 @@ void freeChapters(Chapter *chapter);
 
 int main()
 {
-  Chapter *chapter = loadChapter("Start.txt");
+  Chapter *chapter = loadChapter("test5/c1.txt");
 
   adventure(chapter);
 
@@ -76,7 +76,7 @@ int printChapter(Chapter *chapter)
            "\n"
            "%s\n"
            "\n"
-           "ENDE\n)", chapter->title_, chapter->text_);
+           "ENDE\n", chapter->title_, chapter->text_);
 
     return 0;
   }
