@@ -81,6 +81,9 @@ int main()
   return 0;
 }
 
+// TODO (╯°□°)╯︵┻━┻
+// free Chapters sollte nicht rekursiv sein
+// vorallem wenn du die bei vecDelete mitgibst
 void freeChapters(Chapter *chapter)
 {
   if (chapter->choiceA_ != NULL)
@@ -114,6 +117,9 @@ void adventure(Chapter *next)
   }
 }
 
+// TODO (╯°□°)╯︵┻━┻
+// is iwie das selbe wie freeChapters?
+// auser das das Chapter selber nicht freigegeben wird^^
 void deleteChapter(Chapter *chapter)
 {
   free(chapter->title_);
@@ -123,7 +129,7 @@ void deleteChapter(Chapter *chapter)
     deleteChapter(chapter->choiceA_);
   }
 
-  if (chapter->choiceA_ != NULL)
+  if (chapter->choiceA_ != NULL) // TODO <== choiceA anstatt choiceB
   {
     deleteChapter(chapter->choiceB_);
 
@@ -184,7 +190,7 @@ int loadChapter(char *filename, Chapter **chapterOut)
   (*chapterOut)->title_ = readLine(fin);
 
   char *testA = readLine(fin);
-  if(testA[0] != '-' && testA[1] != '\0')
+  if(testA[0] != '-' && testA[1] != '\0') // besser mit == anstatt != und dann halt inhalte vertauschen
   {
     (*chapterOut)->choiceA_ = testA;
   }
@@ -192,7 +198,8 @@ int loadChapter(char *filename, Chapter **chapterOut)
   {
     (*chapterOut)->choiceA_ = NULL;
   }
-  free(testA);
+// TODO (╯°□°)╯︵┻━┻
+  free(testA); // testA darf NICHT freigegeben werden
 
   char *testB = readLine(fin);
   if(testB[0] != '-' && testB[1] != '\0')
@@ -203,8 +210,10 @@ int loadChapter(char *filename, Chapter **chapterOut)
   {
     (*chapterOut)->choiceA_ = NULL;
   }
-  free(testB);
+// TODO (╯°□°)╯︵┻━┻
+  free(testB); // testB darf NICHT freigegeben werden
 
+    // TODO fseek, ftell und fread anwenden ;)
   (*chapterOut)->text_ = readAll(fin);
 
   fclose(fin);
@@ -216,6 +225,9 @@ int loadChapter(char *filename, Chapter **chapterOut)
 int compareStuff(void *valueA, void *valueB)
 {
 
+// TODO (╯°□°)╯︵┻━┻
+// es wär besser wenn beide pointer zu chapterLinks wären, da man ja nicht unbedingt weis
+// ob die vector funktionen den parameter als valueA oder valueB mitgeben
   //valueA pointer to filename
   //valueB pointer to chapterlink
   ChapterLink *chapterLink = valueB;
@@ -225,11 +237,12 @@ int compareStuff(void *valueA, void *valueB)
   {
     return 1;
   }
-  if (valueA == chapterLink->filename) //TODO ???
+  if (valueA == chapterLink->filename) //TODO ???: vergleicht nur die werte der pointer
+      // es gibt funktionen für vergleichen von daten im speicher, für strings strcmp(const char*,const char*)
   {
     return 0;
   }
-
+// der dritte rückgabewert sollte -1 sein, welcher auch immer das dann ist^^
   return 2;
 }
 
@@ -253,6 +266,8 @@ void loadAllChapters(char *filename,Vector *chapterList, Vector *linkVec, int (*
 
   ChapterLink *firstChapterLink = malloc(sizeof(ChapterLink));
   firstChapterLink->filename = filename;
+// TODO (╯°□°)╯︵┻━┻
+    // Chapter pointer zu ChapterLink nicht hinzugefügt
 
   vecAdd(linkVec, firstChapterLink);
   vecAdd(chapterList, firstChapter);
@@ -319,12 +334,19 @@ char *readLine(FILE *fin)
 
     if (i == LINE_BUFFER_SIZE)
     {
+// TODO (╯°□°)╯︵┻━┻
+        // falls ich bei dem dabei war hab ich ka warum da memmove steht^^
+        // funktioniert zwar aber memmove is einfach nur wie ein gebuffertes memcpy
+        // heist es speichert alles iwo zwischen das man daten auch überlappend verschieben kann
+        // was in diesem fall nicht notwendig is und daher auch memcpy die bessere wahl ist
       memmove(line + (length - i), buffer, (size_t) i);
       line = realloc(line, (size_t) length);
       i = 0;
     }
   }
 
+// TODO (╯°□°)╯︵┻━┻
+    // siehe oben
   memmove(line + (length - i), buffer, (size_t) i);
   line = realloc(line, (size_t) (length + 1));
   line[length] = '\0';
@@ -354,12 +376,16 @@ char *readAll(FILE *fin)
 
     if (i == LINE_BUFFER_SIZE)
     {
+// TODO (╯°□°)╯︵┻━┻
+        // siehe oben
       memmove(line + (length - i), buffer, (size_t) i);
       line = realloc(line, (size_t) length);
       i = 0;
     }
   }
 
+// TODO (╯°□°)╯︵┻━┻
+    // siehe oben
   memmove(line + (length - i), buffer, (size_t) i);
   line = realloc(line, (size_t) (length + 1));
   line[length] = '\0';
@@ -373,7 +399,12 @@ int vecTrim(Vector *vector)
 
   vector->capacity = vector->size;
   vector->elements = realloc(vector->elements, vector->capacity * sizeof(void*));
-  if(vector->elements == NULL)
+
+
+// TODO (╯°□°)╯︵┻━┻
+    // das programm muss man eig nicht abbrechen wenn das trimmen nicht gefunst hat
+    // es funktioniert ja, braucht halt mehr ram^^
+    if(vector->elements == NULL)
   {
     free(save);
     printf("Out of Memory");
@@ -387,6 +418,7 @@ int vecEnsureCap(Vector *vector)
 {
   if (vector->size == vector->capacity)
   {
+      // TODO auf bitshift änder ;)
     vector->capacity *= 2;
 
     void *save = vector->elements;
