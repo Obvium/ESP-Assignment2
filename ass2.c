@@ -6,10 +6,10 @@
 // It saves the whole story at its start.
 //
 //
-// Group: Group 2, study assistant <Name of Study assistant>
+// Group: Group 2, study assistant Florian Hager
 //
 // Authors:
-// Stefan Fragner <Matriculum Number>
+// Stefan Fragner 11703708
 // Tobias Topar 11710538
 //-----------------------------------------------------------------------------
 //
@@ -20,6 +20,7 @@
 #include <stdlib.h>
 
 
+// Return codes
 #define FAIL 0
 #define OK 10
 #define WRONG_USAGE 1
@@ -27,10 +28,12 @@
 #define INVALID_FILE 3
 #define END FAIL
 
+// Macros for checking return codes
 #define FAILED(r) ((r) != OK)
 #define SUCCESS(r) ((r) == OK)
 #define NULLPTR(p) ((p) == NULL)
 
+// Macros for printing error messages
 #define PRINT_USAGE() printf("Usage: ./ass2 [file-name]\n")
 #define PRINT_OUT_OF_MEMORY() printf("[ERR] Out of memory.\n")
 #define PRINT_INVALID_INPUT() printf("[ERR] Please enter A or B.\n")
@@ -73,7 +76,7 @@ void *mRealloc(void *p, size_t size)
 }
 // ----------------------------------------------
 
-//includes all the important information of one textfile (chapter)
+// Contains all the important information of one text file (chapter)
 typedef struct _Chapter_
 {
   char *title_;
@@ -82,50 +85,79 @@ typedef struct _Chapter_
   void *choiceB_;
 } Chapter;
 
-//this struct is used to link the pointer of an chapter to its corresponding filename
+// Contains the pointer of a chapter to its corresponding filename
 typedef struct _ChapterLink_
 {
   char *fileName_;
   Chapter *pChapter_;
 } ChapterLink;
 
-//Vector for custom Vector-system
+// Vector for a "Vector-system"
 typedef struct _Vector_
 {
-  int size_;
-  int capacity_;
-  void **elements_;
+  int size_; // number of elements in the array
+  int capacity_; // current maximum array size
+  void **elements_; // array for elements
 } Vector;
 
 
-int vecCreate(Vector **vector, int initCapacity); //Creates a new empty vector
-void vecDelete(Vector *vector, void (*freeElement)(void *)); //Deletes all included information of a vector
-int vecEnsureCapacity(Vector *vector); //reallocates the space for a vector if needed
-int vecAdd(Vector *vector, void *element); //adds a new element to an existing vector
-int vecAddAtIndex(Vector *vector, void *element, int index); //applies vecAdd at a specific position within the vector
-int vecInsert(Vector *vector, int (*compare)(const void *, const void *), void *element);// TODO description
-void *vecGet(Vector *vector, int (*compare)(const void *, const void *), const void *element); // checks if an element is already listed
-void vecTrim(Vector *vector); //Trims the vector to its size, so no unnecessary memory is allocated
+// Creates a new empty vector
+int vecCreate(Vector **vector, int initCapacity);
+
+// Deletes a Vector
+void vecDelete(Vector *vector, void (*freeElement)(void *));
+
+// Reallocates memory to vector elements if needed
+int vecEnsureCapacity(Vector *vector);
+
+// Adds an element at the end of an existing vector
+int vecAdd(Vector *vector, void *element);
+
+// Adds an element at the given index of an existing vector
+int vecAddAtIndex(Vector *vector, void *element, int index);
+
+// Sorts an element into an existing vector in a specific order
+int vecInsert(Vector *vector, int (*compare)(const void *, const void *), void *element);
+
+// Returns a specific element of the vector elements
+void *vecGet(Vector *vector, int (*compare)(const void *, const void *), const void *element);
+
+// Trims the vector to its size (so no unnecessary memory is allocated)
+void vecTrim(Vector *vector);
 
 void freeChapterLink(void *pVoid);
 void freeChapter(void *pVoid);
+
+// Compares two ChapterLinks by its fileName_
 int compareChapterLink(const void *av, const void *bv);
 
-int readLine(FILE *pFile, char **outLine); //reads one line of a single txt-file
+// reads a single line of a single text file
+int readLine(FILE *pFile, char **outLine);
+
+// TODO COMMENT ?
 int loadChapter(char *fileName, Chapter **outChapter);
+
+// TODO COMMENT ?
 int checkFileChoice(Vector *vChapterLinks, char **fileChoice);
+
+// TODO COMMENT ?
 int loadFile(Vector *vChapters, Vector *vChapterLinks, char **fileName);
 
 int loadChapters(Vector *vChapters, Vector *vChapterLinks, char *fileName);
+
 void linkChapters(Vector *vChapters, Vector *vChapterLinks);
 
 int printChapter(Chapter *pChapter);
+
+// Returns a users input choice
 char getChoice();
 
 //-----------------------------------------------------------------------------
-/// This function deletes the content of the ChapterLink struct.
 ///
-/// \param pVoid TODO maybe
+/// Frees the memory allocated to the file name in a ChapterLink and the
+/// ChapterLink itself.
+///
+/// @param pVoid a pointer to a ChapterLink
 //
 void freeChapterLink(void *pVoid)
 {
@@ -139,9 +171,10 @@ void freeChapterLink(void *pVoid)
 }
 
 //-----------------------------------------------------------------------------
-/// Delets the content of the Chapter struct
 ///
-/// \param pVoid
+/// Frees the memory allocated to a Chapter title, text and the Chapter itself.
+///
+/// @param pVoid a pointer to a Chapter
 //
 void freeChapter(void *pVoid)
 {
@@ -156,19 +189,27 @@ void freeChapter(void *pVoid)
 }
 
 //-----------------------------------------------------------------------------
-/// Compares the fileNames of two different ChapterLink structs
 ///
-/// \param av //TODO
-/// \param bv
+/// Compares the fileNames of two different ChapterLinks
 ///
-/// \return -1 if the first parameter is "smaller" (alphabetical order)
+/// @param pVoidA void pointer to element A
+/// @param pVoidB void pointer to element B
+///
+/// @return -1 if the file name of pVoidA is lexicographically smaller than the
+///            file name of pVoidB
+///          0 if the file name of pVoidA is equal to the file name of pVoidB
+///          1 if the file name of pVoidA is lexicographically bigger than the
+///            file name of pVoidB
+///
 //
-int compareChapterLink(const void *av, const void *bv)
+int compareChapterLink(const void *pVoidA, const void *pVoidB)
 {
-  char *a = ((ChapterLink *) av)->fileName_;
-  char *b = ((ChapterLink *) bv)->fileName_;
+  char *a = ((ChapterLink *) pVoidA)->fileName_;
+  char *b = ((ChapterLink *) pVoidB)->fileName_;
 
   int i;
+  // compares all characters of the file names
+  // for the length of the shortest one
   for (i = 0; a[i] != '\0' && b[i] != '\0'; ++i)
   {
     if (a[i] < b[i])
@@ -181,15 +222,20 @@ int compareChapterLink(const void *av, const void *bv)
     }
   }
 
+  // compares the last character of one file name to the character at equal
+  // index of the other file name
   return (a[i] < b[i] ? -1 : (a[i] != b[i]));
 }
 
 //-----------------------------------------------------------------------------
-/// Sets the parameter of a new Vector struct.
 ///
-/// \param vector A predefined vector
-/// \param initCapacity
-/// \return if there was enough memory space to allocate
+/// Allocates memory to the Vector and the elements of a Vector with a capacity
+/// of initCapacity.
+///
+/// @param vector A predefined vector
+/// @param initCapacity
+/// @return OUT_OF_MEMORY or
+///         OK
 //
 int vecCreate(Vector **vector, int initCapacity)
 {
@@ -213,10 +259,12 @@ int vecCreate(Vector **vector, int initCapacity)
 }
 
 //-----------------------------------------------------------------------------
-/// Deletes every element and elements itself, of a specific vector
 ///
-/// \param vector Vector you want to be deleted
-/// \param freeElement Function to delete the elements of the vector
+/// Frees every element of a vector with freeElement, vector->elements and the
+/// vector itself.
+///
+/// @param vector Vector you want to be freed
+/// @param freeElement Function to free the elements of the vector
 //
 void vecDelete(Vector *vector, void (*freeElement)(void *))
 {
@@ -262,17 +310,21 @@ void vecDelete(Vector *vector, void (*freeElement)(void *))
 }
 
 //-----------------------------------------------------------------------------
-/// Checks if there is enough space allocated to add more elements to a vector,
-/// if not it reallocates twice as much as the current capacity
 ///
-/// \param vector
-/// \return if there was enough space to allocate
+/// Checks if there is enough memory allocated to add ONE more element to a
+/// vector. If not, it reallocates twice as much as the current capacity.
+///
+/// @param vector
+/// @return OUT_OF_MEMORY or
+///         OK
 //
 int vecEnsureCapacity(Vector *vector)
 {
   if (vector->size_ == vector->capacity_)
   {
     vector->capacity_ <<= 1;
+
+    // stores the pointer for the case that the reallocation fails
     void *save = vector->elements_;
 
     vector->elements_ = REALLOC(vector->elements_, vector->capacity_ * sizeof(void *));
@@ -282,15 +334,19 @@ int vecEnsureCapacity(Vector *vector)
       return OUT_OF_MEMORY;
     }
   }
+
   return OK;
 }
 
 //-----------------------------------------------------------------------------
-/// It adds a new element to the end of an existing vector
 ///
-/// \param vector
-/// \param element The new element
-/// \return if there was enough space allocated to add an element
+/// Adds the element to the end of the elements of a vector if there is enough
+/// memory.
+///
+/// @param vector
+/// @param element The element to add
+/// @return result of vecEnsureCapacity if it fails or
+///         OK
 //
 int vecAdd(Vector *vector, void *element)
 {
@@ -307,12 +363,15 @@ int vecAdd(Vector *vector, void *element)
 }
 
 //-----------------------------------------------------------------------------
-/// It adds a new element at an specific point in an existing vector
 ///
-/// \param vector
-/// \param element The new element
-/// \param index Point where the new element should be
-/// \return if there was enough space allocated to add an element
+/// Adds the element at the given index to the elements of a vector if there is
+/// enough memory.
+///
+/// @param vector
+/// @param element The element to add
+/// @param index Index where the element should be added
+/// @return result of vecEnsureCapacity if it fails or
+///         OK
 //
 int vecAddAtIndex(Vector *vector, void *element, int index)
 {
@@ -330,6 +389,7 @@ int vecAddAtIndex(Vector *vector, void *element, int index)
   void **start = vector->elements_ + vector->size_;
   void **end = vector->elements_ + index;
 
+  // moves every element after index to the next position
   while (start != end)
   {
     *start = *(start - 1);
@@ -343,12 +403,16 @@ int vecAddAtIndex(Vector *vector, void *element, int index)
 }
 
 //-----------------------------------------------------------------------------
-/// Sorts a new element into an existing vector in alphabetical order
 ///
-/// \param vector
-/// \param compare The function to compare the new element with the already existing ones, to find the right location
-/// \param element The new element
-/// \return if there was enough space allocated to add a new element
+/// Adds the given element at the correct index determined by the given
+/// compare function.
+///
+/// @param vector
+/// @param compare The function to compare the given element with already
+///                existing ones, to find the right location
+/// @param element The element to add
+/// @return result of vecAdd or
+///         result of vecAddAtIndex
 //
 int vecInsert(Vector *vector, int (*compare)(const void *, const void *), void *element)
 {
@@ -361,16 +425,19 @@ int vecInsert(Vector *vector, int (*compare)(const void *, const void *), void *
   int highIndex = vector->size_ - 1;
   int midIndex, cmp;
 
+  // if the given element is "greater" than the last element
   if (compare(element, vector->elements_[highIndex]) > 0)
   {
     return vecAdd(vector, element);
   }
 
+  // if the given element is "smaller" than the fist element // TODO research
   if (compare(element, vector->elements_[lowIndex]) < 0)
   {
     return vecAddAtIndex(vector, element, 0);
   }
 
+  // TODO research name?
   while ((midIndex = (highIndex + lowIndex) / 2) != lowIndex)
   {
     cmp = compare(element, vector->elements_[midIndex]);
@@ -394,12 +461,16 @@ int vecInsert(Vector *vector, int (*compare)(const void *, const void *), void *
 }
 
 //-----------------------------------------------------------------------------
-/// Searches for an element in an specific Vector //TODO
 ///
-/// \param vector
-/// \param compare
-/// \param element The element to search for
-/// \return if it found the element it returns the element itself if not it returns a NULL pointer
+/// Searches for an element in the elements of a Vector determined by the
+/// given compare function and the given search criteria element.
+///
+/// @param vector
+/// @compare The function to compare the given element with already
+///                existing ones, to find the right location
+/// @param element The search criteria
+/// @return The element if found or
+///         NULL if not found
 //
 void *vecGet(Vector *vector, int (*compare)(const void *, const void *), const void *element)
 {
@@ -412,6 +483,7 @@ void *vecGet(Vector *vector, int (*compare)(const void *, const void *), const v
   int highIndex = vector->size_ - 1;
   int midIndex, cmp;
 
+  // if the given element is equals the first element
   cmp = compare(element, vector->elements_[lowIndex]);
   if (cmp == 0)
   {
@@ -422,6 +494,7 @@ void *vecGet(Vector *vector, int (*compare)(const void *, const void *), const v
     return NULL;
   }
 
+  // if the given element is equals the last element
   cmp = compare(element, vector->elements_[highIndex]);
   if (cmp == 0)
   {
@@ -432,6 +505,7 @@ void *vecGet(Vector *vector, int (*compare)(const void *, const void *), const v
     return NULL;
   }
 
+  // TODO RESEARCH name?
   while ((midIndex = (highIndex + lowIndex) / 2) != lowIndex)
   {
     cmp = compare(element, vector->elements_[midIndex]);
@@ -455,9 +529,10 @@ void *vecGet(Vector *vector, int (*compare)(const void *, const void *), const v
 }
 
 //-----------------------------------------------------------------------------
-/// Trims a specific vecter down to its size. So no excess-memory is allocated
 ///
-/// \param vector
+/// Trims the given vector down to its size. So no excess-memory is allocated.
+///
+/// @param vector
 //
 void vecTrim(Vector *vector)
 {
@@ -466,6 +541,7 @@ void vecTrim(Vector *vector)
     return;
   }
 
+  // allocate to a new variable in the case that the reallocation fails
   void *newElements = REALLOC(vector->elements_, vector->size_ * sizeof(void *));
 
   if (!NULLPTR(newElements))
@@ -476,11 +552,14 @@ void vecTrim(Vector *vector)
 }
 
 //-----------------------------------------------------------------------------
-/// It reads the one line of a open file and saves it to where outLine points at
 ///
-/// \param pFile The already opened file
-/// \param outLine The output of this function
-/// \return if there was enough space allocated to read in the whole line
+/// Reads a single line of an open file and returns it via outLine.
+///
+/// @param pFile The already opened file
+/// @param outLine The line output
+/// @return OUT_OF_MEMORY
+///         INVALID_FILE
+///         OK
 //
 int readLine(FILE *pFile, char **outLine)
 {
@@ -494,6 +573,8 @@ int readLine(FILE *pFile, char **outLine)
   int length = 0;
   int index = 0;
   char buffer[LINE_BUFFER_SIZE];
+
+  // stores the pointer for the case that the reallocation fails
   char *save = *outLine;
 
   while ((character = getc(pFile)) != '\n' && character != EOF)
@@ -506,6 +587,7 @@ int readLine(FILE *pFile, char **outLine)
     }
 // ----------------------------------------------
 
+    // copy the values of the buffer to *outLine if the buffer is full
     if (index == LINE_BUFFER_SIZE)
     {
       (*outLine) = REALLOC(*outLine, (length + LINE_BUFFER_SIZE) * sizeof(char));
@@ -531,13 +613,14 @@ int readLine(FILE *pFile, char **outLine)
     return INVALID_FILE;
   }
 
+  // copy the values of the buffer to *outLine
   if (index > 0)
   {
     memcpy((*outLine) + length - index, buffer, (size_t) index);
   }
 
   ++length;
-  (*outLine) = REALLOC(*outLine, length * sizeof(char));
+  (*outLine) = REALLOC(*outLine, length * sizeof(char)); // trim *outLine
   if (NULLPTR(*outLine))
   {
     FREE(save);
@@ -550,12 +633,13 @@ int readLine(FILE *pFile, char **outLine)
 }
 
 //-----------------------------------------------------------------------------
+/// TODO COMMENT
 /// Used to read the filename insed the opend txt file.
 ///
 ///
-/// \param pFile The already opened file
-/// \param fileNameOut The output of this function (NULL if it was an end-chapter
-/// \return if there was enough space allocated to read the file
+/// @param pFile The already opened file
+/// @param fileNameOut The output of this function (NULL if it was an end-chapter
+/// @return if there was enough space allocated to read the file
 //
 int readFileName(FILE *pFile, char **fileNameOut)
 {
@@ -564,7 +648,7 @@ int readFileName(FILE *pFile, char **fileNameOut)
   {
     return result;
   }
-
+// TODO implement
   if ((*fileNameOut)[0] == '-' && (*fileNameOut)[1] == '\0')
   {
     FREE(*fileNameOut);
@@ -575,11 +659,12 @@ int readFileName(FILE *pFile, char **fileNameOut)
 }
 
 //-----------------------------------------------------------------------------
+/// TODO COMMENT
 /// Loads a whole chapter into the a chapter struct
 ///
-/// \param fileName The filename of the Chapter.txt it wants to read
-/// \param outChapter Outputs the read chapter
-/// \return if an error occured or not
+/// @param fileName The filename of the Chapter.txt it wants to read
+/// @param outChapter Outputs the read chapter
+/// @return if an error occured or not
 //
 int loadChapter(char *fileName, Chapter **outChapter)
 {
@@ -745,20 +830,22 @@ int loadChapter(char *fileName, Chapter **outChapter)
 }
 
 //-----------------------------------------------------------------------------
-/// //TODO
-/// \param vChapterLinks
-/// \param fileChoice
-/// \return
+///
+///
+///
+/// @param vChapterLinks
+/// @param chapterChoice
+/// @return
 //
-int checkFileChoice(Vector *vChapterLinks, char **fileChoice)
+int checkFileChoice(Vector *vChapterLinks, char **chapterChoice) // TODO rename fileChoice ?
 {
-  ChapterLink chapterLink = {*fileChoice, NULL};
+  ChapterLink chapterLink = { *chapterChoice, NULL };
   ChapterLink *pChapterLink = vecGet(vChapterLinks, compareChapterLink, &chapterLink);
 
   if (pChapterLink)
   {
-    FREE(*fileChoice);
-    (*fileChoice) = pChapterLink->fileName_;
+    FREE(*chapterChoice);
+    (*chapterChoice) = pChapterLink->fileName_;
   }
   else
   {
@@ -769,7 +856,7 @@ int checkFileChoice(Vector *vChapterLinks, char **fileChoice)
     }
 
     pChapterLink->pChapter_ = NULL;
-    pChapterLink->fileName_ = (*fileChoice);
+    pChapterLink->fileName_ = (*chapterChoice);
     vecInsert(vChapterLinks, compareChapterLink, pChapterLink);
   }
 
@@ -778,10 +865,10 @@ int checkFileChoice(Vector *vChapterLinks, char **fileChoice)
 
 //-----------------------------------------------------------------------------
 /// //TODO
-/// \param vChapters
-/// \param vChapterLinks
-/// \param fileName
-/// \return
+/// @param vChapters
+/// @param vChapterLinks
+/// @param fileName
+/// @return
 //
 int loadFile(Vector *vChapters, Vector *vChapterLinks, char **fileName)
 {
@@ -843,10 +930,10 @@ int loadFile(Vector *vChapters, Vector *vChapterLinks, char **fileName)
 //-----------------------------------------------------------------------------
 /// Reads every chapter till it got every end-chapter
 ///
-/// \param vChapters Vector of all chapters
-/// \param vChapterLinks Vector of all linked chapter-pointers
-/// \param fileName The filename of the first file
-/// \return if any errors occured
+/// @param vChapters Vector of all chapters
+/// @param vChapterLinks Vector of all linked chapter-pointers
+/// @param fileName The filename of the first file
+/// @return if any errors occured
 //
 int loadChapters(Vector *vChapters, Vector *vChapterLinks, char *fileName)
 {
@@ -916,8 +1003,8 @@ int loadChapters(Vector *vChapters, Vector *vChapterLinks, char *fileName)
 /// Opens up a chapter and takes the filename for the next chapter-choice
 /// and replaces it with the pointer to the next chapter
 ///
-/// \param vChapters The vector with every chapter
-/// \param vChapterLinks The vector with all the linked chapter-pointers
+/// @param vChapters The vector with every chapter
+/// @param vChapterLinks The vector with all the linked chapter-pointers
 //
 void linkChapters(Vector *vChapters, Vector *vChapterLinks)
 {
@@ -948,8 +1035,8 @@ void linkChapters(Vector *vChapters, Vector *vChapterLinks)
 //-----------------------------------------------------------------------------
 /// Prints the title and the text of an specific chapter
 ///
-/// \param pChapter The pointer to the chapter
-/// \return of the the textadventure reached one of its endings or not
+/// @param pChapter The pointer to the chapter
+/// @return of the the textadventure reached one of its endings or not
 //
 int printChapter(Chapter *pChapter)
 {
@@ -973,7 +1060,7 @@ int printChapter(Chapter *pChapter)
 //-----------------------------------------------------------------------------
 /// waits for the user to input either A or B and returns the result
 ///
-/// \return A or B
+/// @return A or B
 //
 char getChoice()
 {
@@ -1020,9 +1107,9 @@ char getChoice()
 /// Combines all functions and prints out all possible error-messages if necessary
 /// it also requires an TODO argument containing the first textfile of a textadventur
 ///
-/// \param argc //TODO (name)
-/// \param argv
-/// \return
+/// @param argc //TODO (name)
+/// @param argv
+/// @return
 //
 int main(int argc, char **argv)
 {
