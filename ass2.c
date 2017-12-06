@@ -136,17 +136,19 @@ int compareChapterLink(const void *av, const void *bv);
 // reads a single line of a single text file
 int readLine(FILE *pFile, char **outLine);
 
-// TODO COMMENT ?
+// loads a single chapter into a chapter-struct
 int loadChapter(FILE* pFile, Chapter **outChapter);
 
 // TODO COMMENT ?
 int checkChapterChoice(Vector *vChapterLinks, char **fileChoice);
 
-// TODO COMMENT ?
+// loads everything out of an opend text file (chapters and filenames)
 int loadFile(Vector *vChapters, Vector *vChapterLinks, char **fileName);
 
+//loads all chapters of a textadventure
 int loadChapters(Vector *vChapters, Vector *vChapterLinks, char *fileName);
 
+//links every chapter with its following 2
 void linkChapters(Vector *vChapters, Vector *vChapterLinks);
 
 int printChapter(Chapter *pChapter);
@@ -439,7 +441,7 @@ int vecInsert(Vector *vector, int (*compare)(const void *, const void *), void *
     return vecAddAtIndex(vector, element, 0);
   }
 
-  // TODO research name?
+  // binary search (half-interval search)
   while ((midIndex = (highIndex + lowIndex) / 2) != lowIndex)
   {
     cmp = compare(element, vector->elements_[midIndex]);
@@ -507,7 +509,7 @@ void *vecGet(Vector *vector, int (*compare)(const void *, const void *), const v
     return NULL;
   }
 
-  // TODO RESEARCH name?
+  // binary search (half-interval search)
   while ((midIndex = (highIndex + lowIndex) / 2) != lowIndex)
   {
     cmp = compare(element, vector->elements_[midIndex]);
@@ -743,7 +745,7 @@ int loadChapter(FILE* pFile, Chapter **outChapter)
 //-----------------------------------------------------------------------------
 ///
 /// Adds the filename of a chapterChoice to the chapterLink vector
-/// TODO
+/// TODO Description
 ///
 /// @param vChapterLinks The ChapterLink vector
 /// @param chapterChoice  A or B choice of a chapter
@@ -857,7 +859,7 @@ int loadFile(Vector *vChapters, Vector *vChapterLinks, char **fileName)
     vecAdd(vChapters, pChapter);
 
     //checks if it is an end-chapter and marks it
-    //TODO
+    //TODO Description
     if (!NULLPTR(pChapter->choiceA_))
     {
       result = checkChapterChoice(vChapterLinks, (char **) &(pChapter->choiceA_));
@@ -959,7 +961,7 @@ int loadChapters(Vector *vChapters, Vector *vChapterLinks, char *fileName)
 }
 
 //-----------------------------------------------------------------------------
-///
+/// TODO Description
 ///
 ///
 /// @param vChapters
