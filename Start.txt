@@ -1,4 +1,10 @@
-start
-morgen
-gestern
-ich gehe heute.
+Guten Morgen
+Uhr.txt
+Schlafen.txt
+Du wachst auf.
+Es scheint ein ganz normaler Morgen zu ein.
+Du weiﬂt nicht wie sp‰t es ist.
+
+Du kannst:
+A: auf die Uhr schauen
+B: weiterschlafen

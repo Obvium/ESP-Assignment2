@@ -140,7 +140,7 @@ int readLine(FILE *pFile, char **outLine);
 int loadChapter(FILE* pFile, Chapter **outChapter);
 
 // TODO COMMENT ?
-int checkFileChoice(Vector *vChapterLinks, char **fileChoice);
+int checkChapterChoice(Vector *vChapterLinks, char **fileChoice);
 
 // TODO COMMENT ?
 int loadFile(Vector *vChapters, Vector *vChapterLinks, char **fileName);
@@ -635,12 +635,12 @@ int readLine(FILE *pFile, char **outLine)
 }
 
 //-----------------------------------------------------------------------------
-/// TODO COMMENT
-/// Used to read the filename insed the opend txt file.
 ///
+/// Reads the filename inside the opened txt file
+/// and checks if it was an end-chapter
 ///
 /// @param pFile The already opened file
-/// @param fileNameOut The output of this function (NULL if it was an end-chapter
+/// @param fileNameOut The output of this function NULL if it was an end-chapter
 /// @return if there was enough space allocated to read the file
 //
 int readFileName(FILE *pFile, char **fileNameOut)
@@ -661,8 +661,10 @@ int readFileName(FILE *pFile, char **fileNameOut)
 }
 
 //-----------------------------------------------------------------------------
-/// TODO COMMENT
+///
 /// Loads a whole chapter into the a chapter struct
+/// Reads the first 3 lines one by one and reads the remaining text at once
+/// Also checks if the file can be used/is in the correct format.
 ///
 /// @param fileName The filename of the Chapter.txt it wants to read
 /// @param outChapter Outputs the read chapter
@@ -693,11 +695,12 @@ int loadChapter(FILE* pFile, Chapter **outChapter)
     return result;
   }
 
-  //TODO
+  //checks if both choices are endings or not
   if (NULLPTR((*outChapter)->choiceA_) != NULLPTR((*outChapter)->choiceB_))
   {
     return INVALID_FILE;
   }
+
 
   long length = ftell(pFile);
 
@@ -706,6 +709,7 @@ int loadChapter(FILE* pFile, Chapter **outChapter)
     return INVALID_FILE;
   }
 
+  //getting the length of the remaining text in the file
   long textLength = ftell(pFile) - length;
   if (textLength == -1L)
   {
@@ -723,6 +727,7 @@ int loadChapter(FILE* pFile, Chapter **outChapter)
     return OUT_OF_MEMORY;
   }
 
+  //reads in the the remaining text
   size_t bred = fread((*outChapter)->text_, (size_t) 1, (size_t) textLength, pFile);
   (*outChapter)->text_[textLength] = '\0';
 
@@ -737,13 +742,15 @@ int loadChapter(FILE* pFile, Chapter **outChapter)
 
 //-----------------------------------------------------------------------------
 ///
-/// TODO COMMENT
+/// Adds the filename of a chapterChoice to the chapterLink vector
+/// TODO
 ///
-/// @param vChapterLinks
-/// @param chapterChoice
-/// @return
+/// @param vChapterLinks The ChapterLink vector
+/// @param chapterChoice  A or B choice of a chapter
+/// @return OUT_OF_MEMORY
+///         OK
 //
-int checkFileChoice(Vector *vChapterLinks, char **chapterChoice) // TODO rename fileChoice ?
+int checkChapterChoice(Vector *vChapterLinks, char **chapterChoice)
 {
   ChapterLink chapterLink = { *chapterChoice, NULL };
   ChapterLink *pChapterLink = vecGet(vChapterLinks, compareChapterLink, &chapterLink);
@@ -770,11 +777,17 @@ int checkFileChoice(Vector *vChapterLinks, char **chapterChoice) // TODO rename 
 }
 
 //-----------------------------------------------------------------------------
-/// //TODO
-/// @param vChapters
-/// @param vChapterLinks
-/// @param fileName
-/// @return
+///
+/// Creates a new chapter and saves the title, the filename for choice A and B
+/// and the text into it.
+/// Also adds an entry inside the vector of all chapters and sets everything.
+///
+/// @param vChapters The vector with all chapters
+/// @param vChapterLinks The vector with all chapterlinks
+/// @param fileName The filename of the file you want to load
+/// @return INVALID_FILE
+///         OK
+///         OUT_OF_MEMORY
 //
 int loadFile(Vector *vChapters, Vector *vChapterLinks, char **fileName)
 {
@@ -819,6 +832,7 @@ int loadFile(Vector *vChapters, Vector *vChapterLinks, char **fileName)
     pChapter->choiceA_ = NULL;
     pChapter->choiceB_ = NULL;
 
+    //saves everything into the chapter
     result = loadChapter(pFile, &pChapter);
     fclose(pFile);
 
@@ -838,12 +852,15 @@ int loadFile(Vector *vChapters, Vector *vChapterLinks, char **fileName)
       return result;
     }
 
+    //adds the chapter to the chapter list
     pChapterLink->pChapter_ = pChapter;
     vecAdd(vChapters, pChapter);
 
+    //checks if it is an end-chapter and marks it
+    //TODO
     if (!NULLPTR(pChapter->choiceA_))
     {
-      result = checkFileChoice(vChapterLinks, (char **) &(pChapter->choiceA_));
+      result = checkChapterChoice(vChapterLinks, (char **) &(pChapter->choiceA_));
       if (FAILED(result))
       {
         FREE(pChapter->choiceA_);
@@ -851,7 +868,7 @@ int loadFile(Vector *vChapters, Vector *vChapterLinks, char **fileName)
         return result;
       }
 
-      result = checkFileChoice(vChapterLinks, (char **) &(pChapter->choiceB_));
+      result = checkChapterChoice(vChapterLinks, (char **) &(pChapter->choiceB_));
       if (FAILED(result))
       {
         FREE(pChapter->choiceB_);
@@ -877,6 +894,7 @@ int loadFile(Vector *vChapters, Vector *vChapterLinks, char **fileName)
 //
 int loadChapters(Vector *vChapters, Vector *vChapterLinks, char *fileName)
 {
+  //starts with the first one, given with the commandline argument
   char *firstFile = MALLOC((strlen(fileName) + 1) * sizeof(char));
   if (NULLPTR(firstFile))
   {
@@ -886,6 +904,7 @@ int loadChapters(Vector *vChapters, Vector *vChapterLinks, char *fileName)
 
   int result;
 
+  //creates the chapterlink Vector and adds the first file
   ChapterLink *pChapterLink = MALLOC(sizeof(ChapterLink));
   if (NULLPTR(pChapterLink))
   {
@@ -903,6 +922,8 @@ int loadChapters(Vector *vChapters, Vector *vChapterLinks, char *fileName)
     return result;
   }
 
+  //now it starts working through the Chapter vector
+  //the Chapter vector will grow until all endfiles are reached
   for (int i = 0; i < vChapters->size_; ++i)
   {
     pChapter = vChapters->elements_[i];
@@ -937,6 +958,14 @@ int loadChapters(Vector *vChapters, Vector *vChapterLinks, char *fileName)
   return OK;
 }
 
+//-----------------------------------------------------------------------------
+///
+///
+///
+/// @param vChapters
+/// @param i
+/// @param j
+//
 void compareChapters(Vector *vChapters, int i, int j)
 {
   Chapter *pChapterA = vChapters->elements_[i];
@@ -977,6 +1006,7 @@ void compareChapters(Vector *vChapters, int i, int j)
 }
 
 //-----------------------------------------------------------------------------
+///
 /// Opens up a chapter and takes the filename for the next chapter-choice
 /// and replaces it with the pointer to the next chapter
 ///
@@ -990,6 +1020,7 @@ void linkChapters(Vector *vChapters, Vector *vChapterLinks)
   ChapterLink *pChapterLink = &chapterLink;
   Chapter *pChapter;
 
+  //goes through all chapters
   for (int i = 0; i < vChapters->size_; ++i)
   {
     pChapter = (Chapter *) vChapters->elements_[i];
@@ -1060,10 +1091,11 @@ void linkChapters(Vector *vChapters, Vector *vChapterLinks)
 }
 
 //-----------------------------------------------------------------------------
+///
 /// Prints the title and the text of an specific chapter
 ///
 /// @param pChapter The pointer to the chapter
-/// @return of the the textadventure reached one of its endings or not
+/// @return if the the textadventure reached one of its endings or not
 //
 int printChapter(Chapter *pChapter)
 {
@@ -1089,6 +1121,7 @@ int printChapter(Chapter *pChapter)
 }
 
 //-----------------------------------------------------------------------------
+///
 /// waits for the user to input either A or B and returns the result
 ///
 /// @return A or B
@@ -1136,12 +1169,14 @@ char getChoice()
 
 //-----------------------------------------------------------------------------
 ///
-/// Combines all functions and prints out all possible error-messages if necessary
-/// it also requires an TODO argument containing the first textfile of a textadventur
+/// Combines all functions and prints out all possible error-messages if
+/// necessary.
+/// it also requires a commandline argument of the first file name of the
+/// textadventure
 ///
-/// @param argc //TODO (name)
-/// @param argv
-/// @return
+/// @param argc Amount of commandline arguments
+/// @param argv The argument itself
+/// @return WRONG_USAGE If there wasn't ONE additional commandline argument
 //
 int main(int argc, char **argv)
 {
@@ -1159,6 +1194,7 @@ int main(int argc, char **argv)
 
   int result;
 
+  //creates the vector that will store chapterlinks
   Vector *vChapterLinks = NULL;
   result = vecCreate(&vChapterLinks, INITIAL_VECTOR_SIZE);
   if (FAILED(result))
@@ -1172,6 +1208,7 @@ int main(int argc, char **argv)
     return result;
   }
 
+  //creates the vector that will store every added chapter
   Vector *vChapters = NULL;
   result = vecCreate(&vChapters, INITIAL_VECTOR_SIZE);
   if (FAILED(result))
@@ -1189,6 +1226,7 @@ int main(int argc, char **argv)
 #ifdef DEBUG // TODO REMOVE
   result = loadChapters(vChapters, vChapterLinks, "test7/c1.txt");
 #else
+  //loads every chapter starting with the first additional commandline argument
   result = loadChapters(vChapters, vChapterLinks, argv[1]);
 #endif
   if (FAILED(result))
@@ -1204,15 +1242,20 @@ int main(int argc, char **argv)
     return result;
   }
 
-  //after the last chapter is loaded they need to be linked to be easily accessed while playing the game
+  //after the last chapter is loaded they need to be linked to be easily
+  //accessed while playing the game
   linkChapters(vChapters, vChapterLinks);
 
+  //now the chapterlink vector is no longer needed
   vecDelete(vChapterLinks, freeChapterLink);
   vChapterLinks = NULL;
 
+  //takes the first element of the chapter vector (it is the first file)
   char choice;
   Chapter *pChapter = vChapters->elements_[0];
 
+  //prints a chapter, waits for the user to input his choice and prints the next
+  //one untill an endchapter is reached.
   while (SUCCESS(printChapter(pChapter)))
   {
     choice = getChoice();
