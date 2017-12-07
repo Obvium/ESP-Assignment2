@@ -118,15 +118,15 @@ int loadChapter(FILE* p_file, Chapter **out_chapter);
 int checkChapterChoice(Vector *v_chapter_links, char **chapter_choice);
 
 // loads everything out of an opend text file (chapters and filenames)
-int loadFile(Vector *vChapters, Vector *vChapterLinks, char **fileName);
+int loadFile(Vector *v_chapters, Vector *v_chapter_links, char **file_name);
 
 //loads all chapters of a textadventure
-int loadChapters(Vector *vChapters, Vector *vChapterLinks, char *fileName);
+int loadChapters(Vector *v_chapters, Vector *v_chapter_links, char *file_name);
 
 //links every chapter with its following 2
-void linkChapters(Vector *vChapters, Vector *vChapterLinks);
+void linkChapters(Vector *v_chapters, Vector *v_chapter_links);
 
-int printChapter(Chapter *pChapter);
+int printChapter(Chapter *p_chapter);
 
 // Returns a users input choice
 char getChoice();
@@ -147,15 +147,15 @@ void safeFree(void *p)
 ///
 /// @param pVoid a pointer to a ChapterLink
 //
-void freeChapterLink(void *pVoid)
+void freeChapterLink(void *p_void)
 {
-  if (NULLPTR(pVoid))
+  if (NULLPTR(p_void))
   {
     return;
   }
-  ChapterLink *pChapterLink = (ChapterLink *) pVoid;
-  safeFree(pChapterLink->file_name_);
-  safeFree(pChapterLink);
+  ChapterLink *p_chapter_link = (ChapterLink *) p_void;
+  safeFree(p_chapter_link->file_name_);
+  safeFree(p_chapter_link);
 }
 
 //-----------------------------------------------------------------------------
@@ -164,16 +164,16 @@ void freeChapterLink(void *pVoid)
 ///
 /// @param pVoid a pointer to a Chapter
 //
-void freeChapter(void *pVoid)
+void freeChapter(void *p_void)
 {
-  if (NULLPTR(pVoid))
+  if (NULLPTR(p_void))
   {
     return;
   }
-  Chapter *pChapter = (Chapter *) pVoid;
-  safeFree(pChapter->title_);
-  safeFree(pChapter->text_);
-  safeFree(pChapter);
+  Chapter *p_chapter = (Chapter *) p_void;
+  safeFree(p_chapter->title_);
+  safeFree(p_chapter->text_);
+  safeFree(p_chapter);
 }
 
 //-----------------------------------------------------------------------------
@@ -190,21 +190,21 @@ void freeChapter(void *pVoid)
 ///            file name of pVoidB
 ///
 //
-int compareChapterLink(const void *pVoidA, const void *pVoidB)
+int compareChapterLink(const void *p_void_a, const void *p_void_b)
 {
-  char *a = ((ChapterLink *) pVoidA)->file_name_;
-  char *b = ((ChapterLink *) pVoidB)->file_name_;
+  char *file_name_a = ((ChapterLink *) p_void_a)->file_name_;
+  char *file_name_b = ((ChapterLink *) p_void_b)->file_name_;
 
   int i;
   // compares all characters of the file names
   // for the length of the shortest one
-  for (i = 0; a[i] != '\0' && b[i] != '\0'; ++i)
+  for (i = 0; file_name_a[i] != '\0' && file_name_b[i] != '\0'; ++i)
   {
-    if (a[i] < b[i])
+    if (file_name_a[i] < file_name_b[i])
     {
       return -1;
     }
-    else if (a[i] > b[i])
+    else if (file_name_a[i] > file_name_b[i])
     {
       return 1;
     }
@@ -212,7 +212,8 @@ int compareChapterLink(const void *pVoidA, const void *pVoidB)
 
   // compares the last character of one file name to the character at equal
   // index of the other file name
-  return (a[i] < b[i] ? -1 : (a[i] != b[i]));
+  return (file_name_a[i] < file_name_b[i] ?
+          -1 : (file_name_a[i] != file_name_b[i]));
 }
 
 //-----------------------------------------------------------------------------
@@ -225,7 +226,7 @@ int compareChapterLink(const void *pVoidA, const void *pVoidB)
 /// @return OUT_OF_MEMORY or
 ///         OK
 //
-int vecCreate(Vector **vector, int initCapacity)
+int vecCreate(Vector **vector, int init_capacity)
 {
   (*vector) = malloc(sizeof(Vector));
   if (NULLPTR(*vector))
@@ -233,14 +234,14 @@ int vecCreate(Vector **vector, int initCapacity)
     return OUT_OF_MEMORY;
   }
 
-  (*vector)->elements_ = malloc(sizeof(void *) * initCapacity);
+  (*vector)->elements_ = malloc(sizeof(void *) * init_capacity);
   if (NULLPTR((*vector)->elements_))
   {
     safeFree(*vector);
     return OUT_OF_MEMORY;
   }
 
-  (*vector)->capacity_ = initCapacity;
+  (*vector)->capacity_ = init_capacity;
   (*vector)->size_ = 0;
 
   return OK;
@@ -379,43 +380,43 @@ int vecInsert(Vector *vector, int (*compare)(const void *, const void *),
     return vecAdd(vector, element);
   }
 
-  int lowIndex = 0;
-  int highIndex = vector->size_ - 1;
-  int midIndex, cmp;
+  int low_index = 0;
+  int high_index = vector->size_ - 1;
+  int mid_index, cmp;
 
   // if the given element is "greater" than the last element
-  if (compare(element, vector->elements_[highIndex]) > 0)
+  if (compare(element, vector->elements_[high_index]) > 0)
   {
     return vecAdd(vector, element);
   }
 
   // if the given element is "smaller" than the fist element
-  if (compare(element, vector->elements_[lowIndex]) < 0)
+  if (compare(element, vector->elements_[low_index]) < 0)
   {
     return vecAddAtIndex(vector, element, 0);
   }
 
   // binary search (half-interval search)
-  while ((midIndex = (highIndex + lowIndex) / 2) != lowIndex)
+  while ((mid_index = (high_index + low_index) / 2) != low_index)
   {
-    cmp = compare(element, vector->elements_[midIndex]);
+    cmp = compare(element, vector->elements_[mid_index]);
 
     if (cmp < 0)
     {
-      highIndex = midIndex;
+      high_index = mid_index;
     }
     else if (cmp > 0)
     {
-      lowIndex = midIndex;
+      low_index = mid_index;
     }
     else
     {
-      return vecAddAtIndex(vector, element, midIndex);
+      return vecAddAtIndex(vector, element, mid_index);
     }
 
   }
 
-  return vecAddAtIndex(vector, element, lowIndex + 1);
+  return vecAddAtIndex(vector, element, low_index + 1);
 }
 
 //-----------------------------------------------------------------------------
@@ -438,15 +439,15 @@ void *vecGet(Vector *vector, int (*compare)(const void *, const void *),
     return NULL;
   }
 
-  int lowIndex = 0;
-  int highIndex = vector->size_ - 1;
-  int midIndex, cmp;
+  int low_index = 0;
+  int high_index = vector->size_ - 1;
+  int mid_index, cmp;
 
   // if the given element is equals the first element
-  cmp = compare(element, vector->elements_[lowIndex]);
+  cmp = compare(element, vector->elements_[low_index]);
   if (cmp == 0)
   {
-    return vector->elements_[lowIndex];
+    return vector->elements_[low_index];
   }
   else if (cmp < 0)
   {
@@ -454,10 +455,10 @@ void *vecGet(Vector *vector, int (*compare)(const void *, const void *),
   }
 
   // if the given element is equals the last element
-  cmp = compare(element, vector->elements_[highIndex]);
+  cmp = compare(element, vector->elements_[high_index]);
   if (cmp == 0)
   {
-    return vector->elements_[highIndex];
+    return vector->elements_[high_index];
   }
   else if (cmp > 0)
   {
@@ -465,21 +466,21 @@ void *vecGet(Vector *vector, int (*compare)(const void *, const void *),
   }
 
   // binary search (half-interval search)
-  while ((midIndex = (highIndex + lowIndex) / 2) != lowIndex)
+  while ((mid_index = (high_index + low_index) / 2) != low_index)
   {
-    cmp = compare(element, vector->elements_[midIndex]);
+    cmp = compare(element, vector->elements_[mid_index]);
 
     if (cmp < 0)
     {
-      highIndex = midIndex;
+      high_index = mid_index;
     }
     else if (cmp > 0)
     {
-      lowIndex = midIndex;
+      low_index = mid_index;
     }
     else
     {
-      return vector->elements_[midIndex];
+      return vector->elements_[mid_index];
     }
 
   }
@@ -501,12 +502,12 @@ void vecTrim(Vector *vector)
   }
 
   // allocate to a new variable in the case that the reallocation fails
-  void *newElements = realloc(vector->elements_,
+  void *new_elements = realloc(vector->elements_,
                               vector->size_ * sizeof(void *));
 
-  if (NOT_NULLPTR(newElements))
+  if (NOT_NULLPTR(new_elements))
   {
-    vector->elements_ = newElements;
+    vector->elements_ = new_elements;
     vector->capacity_ = vector->size_;
   }
 }
@@ -521,10 +522,10 @@ void vecTrim(Vector *vector)
 ///         INVALID_FILE
 ///         OK
 //
-int readLine(FILE *pFile, char **outLine)
+int readLine(FILE *p_file, char **out_line)
 {
-  (*outLine) = malloc(LINE_BUFFER_SIZE * sizeof(char));
-  if (NULLPTR(*outLine))
+  (*out_line) = malloc(LINE_BUFFER_SIZE * sizeof(char));
+  if (NULLPTR(*out_line))
   {
     return OUT_OF_MEMORY;
   }
@@ -535,9 +536,9 @@ int readLine(FILE *pFile, char **outLine)
   char buffer[LINE_BUFFER_SIZE];
 
   // stores the pointer for the case that the reallocation fails
-  char *save = *outLine;
+  char *save = *out_line;
 
-  while ((character = getc(pFile)) != '\n' && character != EOF)
+  while ((character = getc(p_file)) != '\n' && character != EOF)
   {
 // TODO REMOVE
 // ----------------------------------------------
@@ -550,16 +551,16 @@ int readLine(FILE *pFile, char **outLine)
     // copy the values of the buffer to *outLine if the buffer is full
     if (index == LINE_BUFFER_SIZE)
     {
-      (*outLine) = realloc(*outLine,
+      (*out_line) = realloc(*out_line,
                            (length + LINE_BUFFER_SIZE) * sizeof(char));
-      if (NULLPTR(*outLine))
+      if (NULLPTR(*out_line))
       {
         safeFree(save);
         return OUT_OF_MEMORY;
       }
-      save = *outLine;
+      save = *out_line;
 
-      memcpy((*outLine) + length - index,
+      memcpy((*out_line) + length - index,
              buffer, LINE_BUFFER_SIZE * sizeof(char));
       index = 0;
     }
@@ -571,25 +572,25 @@ int readLine(FILE *pFile, char **outLine)
 
   if (character == EOF)
   {
-    safeFree(*outLine);
+    safeFree(*out_line);
     return INVALID_FILE;
   }
 
   // copy the values of the buffer to *outLine
   if (index > 0)
   {
-    memcpy((*outLine) + length - index, buffer, (size_t) index);
+    memcpy((*out_line) + length - index, buffer, (size_t) index);
   }
 
   ++length;
-  (*outLine) = realloc(*outLine, length * sizeof(char)); // trim *outLine
-  if (NULLPTR(*outLine))
+  (*out_line) = realloc(*out_line, length * sizeof(char)); // trim *outLine
+  if (NULLPTR(*out_line))
   {
     safeFree(save);
     return OUT_OF_MEMORY;
   }
 
-  (*outLine)[length - 1] = '\0';
+  (*out_line)[length - 1] = '\0';
 
   return OK;
 }
@@ -605,28 +606,28 @@ int readLine(FILE *pFile, char **outLine)
 /// @return result of readLine, if failed, or
 ///                OK
 //
-int readFileName(FILE *pFile, char **fileNameOut)
+int readFileName(FILE *p_file, char **file_name_out)
 {
-  int result = readLine(pFile, fileNameOut);
+  int result = readLine(p_file, file_name_out);
   if (FAILED(result))
   {
     return result;
   }
 
   // If the string equals "-", then there is no file name
-  if ((*fileNameOut)[0] == '-' && (*fileNameOut)[1] == '\0')
+  if ((*file_name_out)[0] == '-' && (*file_name_out)[1] == '\0')
   {
-    safeFree(*fileNameOut);
-    (*fileNameOut) = NULL;
+    safeFree(*file_name_out);
+    (*file_name_out) = NULL;
   }
   else
   {
     // get the absolute path from the relative path fileNameOut if possible
-    char* path = realpath(*fileNameOut, NULL);
+    char* path = realpath(*file_name_out, NULL);
     if (NOT_NULLPTR(path))
     {
-      safeFree(*fileNameOut);
-      (*fileNameOut) = path;
+      safeFree(*file_name_out);
+      (*file_name_out) = path;
     }
   }
 
@@ -646,71 +647,71 @@ int readFileName(FILE *pFile, char **fileNameOut)
 ///         INVALID_FILE or
 ///         OK
 //
-int loadChapter(FILE* pFile, Chapter **outChapter)
+int loadChapter(FILE* p_file, Chapter **out_chapter)
 {
   int result;
 
   // read the title
-  result = readLine(pFile, &((*outChapter)->title_));
+  result = readLine(p_file, &((*out_chapter)->title_));
   if (FAILED(result))
   {
     return result;
   }
 
   // read the file name for choice A
-  result = readFileName(pFile, (char **) &((*outChapter)->choice_a_));
+  result = readFileName(p_file, (char **) &((*out_chapter)->choice_a_));
   if (FAILED(result))
   {
     return result;
   }
 
   // read the file name for choice B
-  result = readFileName(pFile, (char **) &((*outChapter)->choice_b_));
+  result = readFileName(p_file, (char **) &((*out_chapter)->choice_b_));
   if (FAILED(result))
   {
     return result;
   }
 
   // checks if both choices are either ends or not ends
-  if (NULLPTR((*outChapter)->choice_a_) != NULLPTR((*outChapter)->choice_b_))
+  if (NULLPTR((*out_chapter)->choice_a_) != NULLPTR((*out_chapter)->choice_b_))
   {
     return INVALID_FILE;
   }
 
   // get the current position in the file
-  long length = ftell(pFile);
+  long length = ftell(p_file);
 
   // move to the end of the file
-  if (fseek(pFile, 0, SEEK_END))
+  if (fseek(p_file, 0, SEEK_END))
   {
     return INVALID_FILE;
   }
 
   // get the position at the end of the file and calculate textLength
-  long textLength = ftell(pFile) - length;
-  if (textLength == -1L)
+  long text_length = ftell(p_file) - length;
+  if (text_length == -1L)
   {
     return INVALID_FILE;
   }
 
   // move back to the original position to continue reading
-  if (fseek(pFile, length, SEEK_SET))
+  if (fseek(p_file, length, SEEK_SET))
   {
     return INVALID_FILE;
   }
 
-  (*outChapter)->text_ = malloc((textLength + 1) * sizeof(char));
-  if (NULLPTR((*outChapter)->text_))
+  (*out_chapter)->text_ = malloc((text_length + 1) * sizeof(char));
+  if (NULLPTR((*out_chapter)->text_))
   {
     return OUT_OF_MEMORY;
   }
 
   // read the the remaining text
-  size_t bred = fread((*outChapter)->text_,
-                      (size_t) 1, (size_t) textLength, pFile);
-  (*outChapter)->text_[textLength] = '\0';
+  size_t bytes_red = fread((*out_chapter)->text_,
+                           (size_t) 1, (size_t) text_length, p_file);
+  (*out_chapter)->text_[text_length] = '\0';
 
-  if (bred != textLength)
+  if (bytes_red != text_length)
   {
     return INVALID_FILE;
   }
@@ -728,30 +729,30 @@ int loadChapter(FILE* pFile, Chapter **outChapter)
 /// @return OUT_OF_MEMORY
 ///         OK
 //
-int checkChapterChoice(Vector *vChapterLinks, char **chapterChoice)
+int checkChapterChoice(Vector *v_chapter_links, char **chapter_choice)
 {
-  ChapterLink chapterLink = { *chapterChoice, NULL };
+  ChapterLink chapter_link = { *chapter_choice, NULL };
 
   // search for a specific ChapterLink
-  ChapterLink *pChapterLink = vecGet(vChapterLinks,
-                                     compareChapterLink, &chapterLink);
+  ChapterLink *p_chapter_link = vecGet(v_chapter_links,
+                                     compareChapterLink, &chapter_link);
 
-  if (pChapterLink)
+  if (p_chapter_link)
   {
-    safeFree(*chapterChoice);
-    (*chapterChoice) = pChapterLink->file_name_;
+    safeFree(*chapter_choice);
+    (*chapter_choice) = p_chapter_link->file_name_;
   }
   else
   {
-    pChapterLink = malloc(sizeof(ChapterLink));
-    if (NULLPTR(pChapterLink))
+    p_chapter_link = malloc(sizeof(ChapterLink));
+    if (NULLPTR(p_chapter_link))
     {
       return OUT_OF_MEMORY;
     }
 
-    pChapterLink->p_chapter = NULL;
-    pChapterLink->file_name_ = (*chapterChoice);
-    vecInsert(vChapterLinks, compareChapterLink, pChapterLink);
+    p_chapter_link->p_chapter = NULL;
+    p_chapter_link->file_name_ = (*chapter_choice);
+    vecInsert(v_chapter_links, compareChapterLink, p_chapter_link);
   }
 
   return OK;
@@ -770,87 +771,87 @@ int checkChapterChoice(Vector *vChapterLinks, char **chapterChoice)
 ///         OK
 ///         OUT_OF_MEMORY
 //
-int loadFile(Vector *vChapters, Vector *vChapterLinks, char **fileName)
+int loadFile(Vector *v_chapters, Vector *v_chapter_links, char **file_name)
 {
   int result;
 
-  ChapterLink chapterLink;
-  chapterLink.file_name_ = *fileName;
-  chapterLink.p_chapter = NULL;
+  ChapterLink chapter_link;
+  chapter_link.file_name_ = *file_name;
+  chapter_link.p_chapter = NULL;
 
   // search for a specific ChapterLink
-  ChapterLink *pChapterLink = vecGet(vChapterLinks,
-                                     compareChapterLink, &chapterLink);
+  ChapterLink *p_chapter_link = vecGet(v_chapter_links,
+                                     compareChapterLink, &chapter_link);
 
-  if (NULLPTR(pChapterLink->p_chapter))
+  if (NULLPTR(p_chapter_link->p_chapter))
   {
 
-    FILE *pFile = fopen(chapterLink.file_name_, "r");
-    if (!pFile)
+    FILE *p_file = fopen(chapter_link.file_name_, "r");
+    if (!p_file)
     {
-      PRINT_INVALID_FILE(chapterLink.file_name_);
+      PRINT_INVALID_FILE(chapter_link.file_name_);
       return INVALID_FILE;
     }
 
     // creates a new empty Chapter
-    Chapter *pChapter = malloc(sizeof(Chapter));
-    if (NULLPTR(pChapter))
+    Chapter *p_chapter = malloc(sizeof(Chapter));
+    if (NULLPTR(p_chapter))
     {
-      fclose(pFile);
+      fclose(p_file);
       return OUT_OF_MEMORY;
     }
-    pChapter->has_end_ = 0;
-    pChapter->title_ = NULL;
-    pChapter->text_ = NULL;
-    pChapter->choice_a_ = NULL;
-    pChapter->choice_b_ = NULL;
+    p_chapter->has_end_ = 0;
+    p_chapter->title_ = NULL;
+    p_chapter->text_ = NULL;
+    p_chapter->choice_a_ = NULL;
+    p_chapter->choice_b_ = NULL;
 
     // saves everything into the chapter
-    result = loadChapter(pFile, &pChapter);
-    fclose(pFile);
+    result = loadChapter(p_file, &p_chapter);
+    fclose(p_file);
 
     if (FAILED(result))
     {
-      safeFree(pChapter->choice_b_);
-      safeFree(pChapter->choice_a_);
-      safeFree(pChapter->title_);
-      safeFree(pChapter->text_);
-      safeFree(pChapter);
+      safeFree(p_chapter->choice_b_);
+      safeFree(p_chapter->choice_a_);
+      safeFree(p_chapter->title_);
+      safeFree(p_chapter->text_);
+      safeFree(p_chapter);
 
       if(result == INVALID_FILE)
       {
-        PRINT_INVALID_FILE(chapterLink.file_name_);
+        PRINT_INVALID_FILE(chapter_link.file_name_);
       }
 
       return result;
     }
 
     //adds the chapter to the chapter list
-    pChapterLink->p_chapter = pChapter;
-    vecAdd(vChapters, pChapter);
+    p_chapter_link->p_chapter = p_chapter;
+    vecAdd(v_chapters, p_chapter);
 
     // Checks the file names of the choices
     // sets hasEnd to 1 if the file names are NULL
-    if (NOT_NULLPTR(pChapter->choice_a_))
+    if (NOT_NULLPTR(p_chapter->choice_a_))
     {
-      result = checkChapterChoice(vChapterLinks, (char **) &(pChapter->choice_a_));
+      result = checkChapterChoice(v_chapter_links, (char **) &(p_chapter->choice_a_));
       if (FAILED(result))
       {
-        safeFree(pChapter->choice_a_);
-        safeFree(pChapter->choice_b_);
+        safeFree(p_chapter->choice_a_);
+        safeFree(p_chapter->choice_b_);
         return result;
       }
 
-      result = checkChapterChoice(vChapterLinks, (char **) &(pChapter->choice_b_));
+      result = checkChapterChoice(v_chapter_links, (char **) &(p_chapter->choice_b_));
       if (FAILED(result))
       {
-        safeFree(pChapter->choice_b_);
+        safeFree(p_chapter->choice_b_);
         return result;
       }
     }
     else
     {
-      pChapter->has_end_ = 1;
+      p_chapter->has_end_ = 1;
     }
   }
 
@@ -869,31 +870,31 @@ int loadFile(Vector *vChapters, Vector *vChapterLinks, char **fileName)
 ///         OUT_OF_MEMORY or
 ///         OK
 //
-int loadChapters(Vector *vChapters, Vector *vChapterLinks, char *fileName)
+int loadChapters(Vector *v_chapters, Vector *v_chapter_links, char *file_name)
 {
   // starts with the first one, given with the commandline argument
-  char *firstFile = malloc((strlen(fileName) + 1) * sizeof(char));
-  if (NULLPTR(firstFile))
+  char *first_file = malloc((strlen(file_name) + 1) * sizeof(char));
+  if (NULLPTR(first_file))
   {
     return OUT_OF_MEMORY;
   }
-  strcpy(firstFile, fileName);
+  strcpy(first_file, file_name);
 
   int result;
 
   // creates the chapterlink Vector and adds the first file
-  ChapterLink *pChapterLink = malloc(sizeof(ChapterLink));
-  if (NULLPTR(pChapterLink))
+  ChapterLink *p_chapter_link = malloc(sizeof(ChapterLink));
+  if (NULLPTR(p_chapter_link))
   {
-    safeFree(firstFile);
+    safeFree(first_file);
     return OUT_OF_MEMORY;
   }
-  pChapterLink->p_chapter = NULL;
-  pChapterLink->file_name_ = firstFile;
-  vecAdd(vChapterLinks, pChapterLink);
+  p_chapter_link->p_chapter = NULL;
+  p_chapter_link->file_name_ = first_file;
+  vecAdd(v_chapter_links, p_chapter_link);
 
-  Chapter *pChapter;
-  result = loadFile(vChapters, vChapterLinks, &firstFile);
+  Chapter *p_chapter;
+  result = loadFile(v_chapters, v_chapter_links, &first_file);
   if (FAILED(result))
   {
     return result;
@@ -901,22 +902,22 @@ int loadChapters(Vector *vChapters, Vector *vChapterLinks, char *fileName)
 
   // now it starts working through the Chapter vector
   // the Chapter vector will grow until all endfiles are reached
-  for (int i = 0; i < vChapters->size_; ++i)
+  for (int i = 0; i < v_chapters->size_; ++i)
   {
-    pChapter = vChapters->elements_[i];
+    p_chapter = v_chapters->elements_[i];
 
-    if (NULLPTR(pChapter->choice_a_))
+    if (NULLPTR(p_chapter->choice_a_))
     {
       continue;
     }
 
-    result = loadFile(vChapters, vChapterLinks, (char **) &(pChapter->choice_a_));
+    result = loadFile(v_chapters, v_chapter_links, (char **) &(p_chapter->choice_a_));
     if (FAILED(result))
     {
       return result;
     }
 
-    result = loadFile(vChapters, vChapterLinks, (char **) &(pChapter->choice_b_));
+    result = loadFile(v_chapters, v_chapter_links, (char **) &(p_chapter->choice_b_));
     if (FAILED(result))
     {
       return result;
@@ -984,7 +985,7 @@ void compareChapters(Vector *v_chapters, int index_a, int index_b)
 /// @param vChapters The vector with every chapter
 /// @param vChapterLinks The vector with all the linked chapter-pointers
 //
-void linkChapters(Vector *v_chapters, Vector *v_chapterLinks)
+void linkChapters(Vector *v_chapters, Vector *v_chapter_links)
 {
   ChapterLink chapter_link;
   chapter_link.p_chapter = NULL;
@@ -1000,7 +1001,7 @@ void linkChapters(Vector *v_chapters, Vector *v_chapterLinks)
       chapter_link.file_name_ = p_chapter->choice_a_;
 
       // find the the Chapter by its file name
-      p_chapter->choice_a_ = ((ChapterLink *) vecGet(v_chapterLinks, compareChapterLink, p_chapter_link))->p_chapter;
+      p_chapter->choice_a_ = ((ChapterLink *) vecGet(v_chapter_links, compareChapterLink, p_chapter_link))->p_chapter;
     }
 
     if (NOT_NULLPTR(p_chapter->choice_b_))
@@ -1008,7 +1009,7 @@ void linkChapters(Vector *v_chapters, Vector *v_chapterLinks)
       chapter_link.file_name_ = p_chapter->choice_b_;
 
       // find the the Chapter by its file name
-      p_chapter->choice_b_ = ((ChapterLink *) vecGet(v_chapterLinks, compareChapterLink, p_chapter_link))->p_chapter;
+      p_chapter->choice_b_ = ((ChapterLink *) vecGet(v_chapter_links, compareChapterLink, p_chapter_link))->p_chapter;
     }
   }
 
