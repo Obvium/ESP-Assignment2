@@ -937,40 +937,40 @@ int loadChapters(Vector *vChapters, Vector *vChapterLinks, char *fileName)
 /// @param indexA index of the first Chapter to compare
 /// @param indexB index of the second Chapter to compare
 //
-void compareChapters(Vector *vChapters, int indexA, int indexB)
+void compareChapters(Vector *v_chapters, int index_a, int index_b)
 {
-  Chapter *pChapterA = vChapters->elements_[indexA];
-  Chapter *pChapterB = vChapters->elements_[indexB];
+  Chapter *p_chapter_a = v_chapters->elements_[index_a];
+  Chapter *p_chapter_b = v_chapters->elements_[index_b];
 
-  if(strcmp(pChapterA->title_, pChapterB->title_) == 0 &&
-     strcmp(pChapterA->text_ , pChapterB->text_ ) == 0 &&
-     pChapterA->choice_a_ == pChapterB->choice_a_ &&
-     pChapterA->choice_b_ == pChapterB->choice_b_)
+  if(strcmp(p_chapter_a->title_, p_chapter_b->title_) == 0 &&
+     strcmp(p_chapter_a->text_ , p_chapter_b->text_ ) == 0 &&
+      p_chapter_a->choice_a_ == p_chapter_b->choice_a_ &&
+      p_chapter_a->choice_b_ == p_chapter_b->choice_b_)
   {
-    vChapters->elements_[indexB] = NULL;
+    v_chapters->elements_[index_b] = NULL;
 
-    Chapter *pChapter;
+    Chapter *p_chapter;
 
-    for(int k = 0; k < vChapters->size_; ++k)
+    for(int k = 0; k < v_chapters->size_; ++k)
     {
-      pChapter = vChapters->elements_[k];
-      if(NULLPTR(pChapter))
+      p_chapter = v_chapters->elements_[k];
+      if(NULLPTR(p_chapter))
       {
         continue;
       }
 
-      if(pChapter->choice_a_ == pChapterB)
+      if(p_chapter->choice_a_ == p_chapter_b)
       {
-        pChapter->choice_a_ = pChapterA;
+        p_chapter->choice_a_ = p_chapter_a;
       }
 
-      if(pChapter->choice_b_ == pChapterB)
+      if(p_chapter->choice_b_ == p_chapter_b)
       {
-        pChapter->choice_b_ = pChapterA;
+        p_chapter->choice_b_ = p_chapter_a;
       }
     }
 
-    freeChapter(pChapterB);
+    freeChapter(p_chapter_b);
   }
 }
 
@@ -984,46 +984,46 @@ void compareChapters(Vector *vChapters, int indexA, int indexB)
 /// @param vChapters The vector with every chapter
 /// @param vChapterLinks The vector with all the linked chapter-pointers
 //
-void linkChapters(Vector *vChapters, Vector *vChapterLinks)
+void linkChapters(Vector *v_chapters, Vector *v_chapterLinks)
 {
-  ChapterLink chapterLink;
-  chapterLink.p_chapter = NULL;
-  ChapterLink *pChapterLink = &chapterLink;
-  Chapter *pChapter;
+  ChapterLink chapter_link;
+  chapter_link.p_chapter = NULL;
+  ChapterLink *p_chapter_link = &chapter_link;
+  Chapter *p_chapter;
 
-  for (int i = 0; i < vChapters->size_; ++i)
+  for (int i = 0; i < v_chapters->size_; ++i)
   {
-    pChapter = (Chapter *) vChapters->elements_[i];
+    p_chapter = (Chapter *) v_chapters->elements_[i];
 
-    if (NOT_NULLPTR(pChapter->choice_a_))
+    if (NOT_NULLPTR(p_chapter->choice_a_))
     {
-      chapterLink.file_name_ = pChapter->choice_a_;
+      chapter_link.file_name_ = p_chapter->choice_a_;
 
       // find the the Chapter by its file name
-      pChapter->choice_a_ = ((ChapterLink *) vecGet(vChapterLinks, compareChapterLink, pChapterLink))->p_chapter;
+      p_chapter->choice_a_ = ((ChapterLink *) vecGet(v_chapterLinks, compareChapterLink, p_chapter_link))->p_chapter;
     }
 
-    if (NOT_NULLPTR(pChapter->choice_b_))
+    if (NOT_NULLPTR(p_chapter->choice_b_))
     {
-      chapterLink.file_name_ = pChapter->choice_b_;
+      chapter_link.file_name_ = p_chapter->choice_b_;
 
       // find the the Chapter by its file name
-      pChapter->choice_b_ = ((ChapterLink *) vecGet(vChapterLinks, compareChapterLink, pChapterLink))->p_chapter;
+      p_chapter->choice_b_ = ((ChapterLink *) vecGet(v_chapterLinks, compareChapterLink, p_chapter_link))->p_chapter;
     }
   }
 
-  for(int i = 0; i < vChapters->size_; ++i)
+  for(int i = 0; i < v_chapters->size_; ++i)
   {
-    if(NULLPTR(vChapters->elements_[i]))
+    if(NULLPTR(v_chapters->elements_[i]))
     {
       continue;
     }
 
-    for(int j = i + 1; j < vChapters->size_; ++j)
+    for(int j = i + 1; j < v_chapters->size_; ++j)
     {
-      if(NOT_NULLPTR(vChapters->elements_[j]))
+      if(NOT_NULLPTR(v_chapters->elements_[j]))
       {
-        compareChapters(vChapters, i, j);
+        compareChapters(v_chapters, i, j);
       }
     }
   }
@@ -1031,20 +1031,20 @@ void linkChapters(Vector *vChapters, Vector *vChapterLinks)
   int moveCount = 0;
 
   // remove all null pointers from the Chapter Vector
-  for(int i = 0; i < vChapters->size_; ++i)
+  for(int i = 0; i < v_chapters->size_; ++i)
   {
-    if(NULLPTR(vChapters->elements_[i]))
+    if(NULLPTR(v_chapters->elements_[i]))
     {
       ++moveCount;
     }
     else if(moveCount > 0)
     {
-      vChapters->elements_[i - moveCount] = vChapters->elements_[i];
+      v_chapters->elements_[i - moveCount] = v_chapters->elements_[i];
     }
   }
 
-  vChapters->size_ -= moveCount;
-  vecTrim(vChapters);
+  v_chapters->size_ -= moveCount;
+  vecTrim(v_chapters);
 
   int update = 1;
   // set hasEnd for every Chapter and continue as long as there is a change
@@ -1052,15 +1052,15 @@ void linkChapters(Vector *vChapters, Vector *vChapterLinks)
   {
     update = 0;
 
-    for(int i = 0; i < vChapters->size_; ++i)
+    for(int i = 0; i < v_chapters->size_; ++i)
     {
-      pChapter = (Chapter *) vChapters->elements_[i];
+      p_chapter = (Chapter *) v_chapters->elements_[i];
 
-      if(!pChapter->has_end_ && (
-          ((Chapter *)pChapter->choice_a_)->has_end_ ||
-          ((Chapter *)pChapter->choice_b_)->has_end_ ) )
+      if(!p_chapter->has_end_ && (
+          ((Chapter *)p_chapter->choice_a_)->has_end_ ||
+          ((Chapter *)p_chapter->choice_b_)->has_end_ ) )
       {
-        pChapter->has_end_ = 1;
+        p_chapter->has_end_ = 1;
         update = 1;
       }
     }
@@ -1075,9 +1075,9 @@ void linkChapters(Vector *vChapters, Vector *vChapterLinks)
 /// @param pChapter The pointer to the chapter
 /// @return if the the textadventure reached one of its endings or not
 //
-int printChapter(Chapter *pChapter)
+int printChapter(Chapter *p_chapter)
 {
-  if(!pChapter->has_end_)
+  if(!p_chapter->has_end_)
   {
     PRINT_NO_END();
   }
@@ -1086,9 +1086,9 @@ int printChapter(Chapter *pChapter)
              "\n"
              "%s\n"
              "\n",
-         pChapter->title_, pChapter->text_);
+         p_chapter->title_, p_chapter->text_);
 
-  if (NULLPTR(pChapter->choice_a_))
+  if (NULLPTR(p_chapter->choice_a_))
   {
     printf("ENDE\n");
     return END;
@@ -1177,8 +1177,8 @@ int main(int argc, char **argv)
   int result;
 
   // creates the vector that will store chapterlinks
-  Vector *vChapterLinks = NULL;
-  result = vecCreate(&vChapterLinks, INITIAL_VECTOR_SIZE);
+  Vector *v_chapterLinks = NULL;
+  result = vecCreate(&v_chapterLinks, INITIAL_VECTOR_SIZE);
   if (FAILED(result))
   {
     if (result == OUT_OF_MEMORY)
@@ -1191,30 +1191,30 @@ int main(int argc, char **argv)
   }
 
   // creates the vector that will store every added chapter
-  Vector *vChapters = NULL;
-  result = vecCreate(&vChapters, INITIAL_VECTOR_SIZE);
+  Vector *v_chapters = NULL;
+  result = vecCreate(&v_chapters, INITIAL_VECTOR_SIZE);
   if (FAILED(result))
   {
     if (result == OUT_OF_MEMORY)
     {
       PRINT_OUT_OF_MEMORY();
     }
-    vecDelete(vChapterLinks, freeChapterLink);
+    vecDelete(v_chapterLinks, freeChapterLink);
 
     printf("ret = %i\n", result);
     return result;
   }
 
   // loads every chapter starting with the first additional commandline argument
-  result = loadChapters(vChapters, vChapterLinks, argv[1]);
+  result = loadChapters(v_chapters, v_chapterLinks, argv[1]);
   if (FAILED(result))
   {
     if (result == OUT_OF_MEMORY)
     {
       PRINT_OUT_OF_MEMORY();
     }
-    vecDelete(vChapterLinks, freeChapterLink);
-    vecDelete(vChapters, freeChapter);
+    vecDelete(v_chapterLinks, freeChapterLink);
+    vecDelete(v_chapters, freeChapter);
 
     printf("ret = %i\n", result);
     return result;
@@ -1222,19 +1222,19 @@ int main(int argc, char **argv)
 
   // after the last chapter is loaded they need to be linked to be easily
   // accessed while playing the game
-  linkChapters(vChapters, vChapterLinks);
+  linkChapters(v_chapters, v_chapterLinks);
 
   // now the Chapterlink Vector is no longer needed
-  vecDelete(vChapterLinks, freeChapterLink);
-  vChapterLinks = NULL;
+  vecDelete(v_chapterLinks, freeChapterLink);
+  v_chapterLinks = NULL;
 
   // takes the first element of the chapter vector (it is the first file)
   char choice;
-  Chapter *pChapter = vChapters->elements_[0];
+  Chapter *p_chapter = v_chapters->elements_[0];
 
   // prints a chapter, waits for the user to input his choice and prints the next
   // one until an endchapter is reached.
-  while (SUCCESS(printChapter(pChapter)))
+  while (SUCCESS(printChapter(p_chapter)))
   {
     choice = getChoice();
 
@@ -1245,15 +1245,15 @@ int main(int argc, char **argv)
 
     if (choice == 'A')
     {
-      pChapter = pChapter->choice_a_;
+      p_chapter = p_chapter->choice_a_;
     }
     else
     {
-      pChapter = pChapter->choice_b_;
+      p_chapter = p_chapter->choice_b_;
     }
   }
 
-  vecDelete(vChapters, freeChapter);
+  vecDelete(v_chapters, freeChapter);
 
   printf("ret = 0\n");
   return 0;
