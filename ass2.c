@@ -731,6 +731,8 @@ int readFileName(FILE *p_file, char **file_name_out)
     safeFree(*file_name_out);
     (*file_name_out) = NULL;
   }
+/* Test System doesn't know the function realpath:
+ * warning: implicit declaration of function ‘realpath’
   else
   {
     // get the absolute path from the relative path fileNameOut if possible
@@ -741,6 +743,7 @@ int readFileName(FILE *p_file, char **file_name_out)
       (*file_name_out) = path;
     }
   }
+*/
 
   return OK;
 }
